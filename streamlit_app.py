@@ -1,59 +1,56 @@
-""" Streamlit app for the CV Chat Agent. """
+import base64
 
 import streamlit as st
 
 from chatbot import MultiAgentChatbot
 
-# Initialize the chatbot
-chatbot = MultiAgentChatbot()
-st.set_page_config(page_title="Skippy's CV Agent", page_icon="🤖")
 
-# App title and description
-st.title("Monkey approved CV Chatbot")
-st.write(
-    """
-Generate and review your CV with the help of advanced (well, barely advanced) AI agents.
-"""
-)
+def download_text(text, filename):
+    b64 = base64.b64encode(text.encode()).decode()
+    href = f'<a href="data:file/txt;base64,{b64}" download="{filename}">📥 Download {filename}</a>'
+    return href
 
-# User Input Section
-st.header("Generate and Review Your CV Section")
-user_prompt = st.text_input(
-    "Enter your CV prompt: (the more skills you add the better!)",
-    "Generate a summary for a software engineer CV.",
-)
 
-# Generate and Review Button
-if st.button("🚀 Generate and Review CV"):
-    if user_prompt.strip():
-        with st.spinner("🔮 Generating your CV..."):
-            try:
-                cv, feedback = chatbot.generate_and_review_cv(user_prompt)
+def main():
+    st.set_page_config(page_title="Skippy's CV Agent", page_icon="🤖")
+    st.title("Monkey approved CV Chatbot")
+    st.write(
+        "Generate and review your CV with the help of advanced (well, barely advanced) AI agents."
+    )
 
-                # Display Generated CV
-                st.subheader("📄 Generated CV Section:")
-                st.text_area("🖊 CV Content:", cv, height=200)
+    st.header("Generate and Review Your CV Section")
+    user_input = st.text_area("Enter your CV prompt:", height=200)
 
-                # Display Reviewer Feedback
-                st.subheader("📝 Reviewer Feedback:")
-                st.text_area("💬 Feedback:", feedback, height=150)
+    if st.button("🚀 Generate and Review CV"):
+        if user_input:
+            chatbot = MultiAgentChatbot()
+            cv, feedback = chatbot.generate_and_review_cv(user_input)
 
-                # Optional: Download Buttons
-                import base64
+            st.subheader("Initial CV")
+            st.text(cv)
+            st.subheader("Initial Feedback")
+            st.text(feedback)
 
-                def download_text(text, filename):
-                    b64 = base64.b64encode(text.encode()).decode()
-                    href = f'<a href="data:file/txt;base64,{b64}" download="{filename}">📥 Download {filename}</a>'
-                    return href
-
-                st.markdown(
-                    download_text(cv, "generated_cv.txt"), unsafe_allow_html=True
+            iteration = 1
+            while iteration < 5 and not chatbot.reviewer.is_satisfied(feedback):
+                st.subheader(f"Iteration {iteration}")
+                cv = chatbot.creator.create_cv_section(
+                    f"{cv}\n\nFeedback: {feedback}\n\nRewrite the CV based on the feedback:"
                 )
-                st.markdown(
-                    download_text(feedback, "feedback.txt"), unsafe_allow_html=True
-                )
+                feedback = chatbot.reviewer.review_cv(cv)
+                st.text(cv)
+                st.text(feedback)
 
-            except Exception as e:
-                st.error(f"⚠️ An error occurred: {e}")
+                iteration += 1
+
+            st.subheader("Final CV")
+            st.text(cv)
+            st.subheader("Final Feedback")
+            st.text(feedback)
+            st.markdown(download_text(cv, "final_cv.txt"), unsafe_allow_html=True)
     else:
-        st.error("🐵 Come on, you monkeys! Enter a prompt before hitting the button.")
+        st.warning("Please enter a CV prompt.")
+
+
+if __name__ == "__main__":
+    main()

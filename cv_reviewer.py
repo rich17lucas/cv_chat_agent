@@ -19,7 +19,6 @@ class CVReviewerAgent:
         self.client = OpenAI(api_key=api_key)
 
     def review_cv(self, cv_text):
-        # Construct the prompt for the OpenAI model
         prompt = (
             "You are an expert career coach. Provide constructive and detailed feedback on the following CV section:\n\n"
             f"{cv_text}\n\n"
@@ -27,7 +26,6 @@ class CVReviewerAgent:
         )
 
         try:
-            # Make a request to the OpenAI API
             completion = self.client.chat.completions.create(
                 model="gpt-4o-mini",  # Adjust to your preferred model
                 messages=[{"role": "user", "content": prompt}],
@@ -37,3 +35,21 @@ class CVReviewerAgent:
             return feedback
         except Exception as e:
             return f"An error occurred while generating feedback: {e}"
+
+    def is_satisfied(self, feedback):
+        prompt = (
+            "You are an expert career coach. Based on the following feedback, determine if the CV is satisfactory:\n\n"
+            f"{feedback}\n\n"
+            "Is the CV satisfactory? (Yes/No):"
+        )
+
+        try:
+            completion = self.client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": prompt}],
+            )
+
+            satisfaction = completion.choices[0].message.content.strip().lower()
+            return satisfaction == "yes"
+        except Exception as e:
+            return False

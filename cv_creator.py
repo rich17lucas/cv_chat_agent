@@ -1,19 +1,13 @@
 # cv_creator.py
 import os
 
-import openai
-from dotenv import load_dotenv
 from openai import OpenAI
 from streamlit import secrets
-
-# Load environment variables from .env if you’re using one
-load_dotenv(override=True)
 
 
 class CVCreatorAgent:
     def __init__(self):
         # Set your OpenAI API key
-        # api_key = os.getenv("OPENAI_API_KEY")
         api_key = secrets.open_ai.OPENAI_API_KEY
         if not api_key:
             raise ValueError(

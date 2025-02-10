@@ -10,3 +10,5 @@ wheels/
 .venv
 # Configuration
 .env
+# Streamlit 
+.streamlit

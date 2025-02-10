@@ -4,6 +4,7 @@ import os
 import openai
 from dotenv import load_dotenv
 from openai import OpenAI
+from streamlit import secrets
 
 # Load environment variables from .env if you’re using one
 load_dotenv(override=True)
@@ -12,7 +13,8 @@ load_dotenv(override=True)
 class CVCreatorAgent:
     def __init__(self):
         # Set your OpenAI API key
-        api_key = os.getenv("OPENAI_API_KEY")
+        # api_key = os.getenv("OPENAI_API_KEY")
+        api_key = secrets.open_ai.OPENAI_API_KEY
         if not api_key:
             raise ValueError(
                 "OpenAI API key not found. Set the OPENAI_API_KEY environment variable."
@@ -35,7 +37,7 @@ class CVCreatorAgent:
             )
 
             # cv_section = response.choices[0].text.strip()
-            cv_section = completion.choices[0].message.content.strip()
+            cv_section = completion.choices[0].message.content
             return cv_section
         except Exception as e:
             return f"An error occurred while generating the CV section: {e}"
